@@ -1,0 +1,5 @@
+Em hipótese alguma delete o          PACKAGE-LOCK.JSON
+
+Para rodar a aplicação na rede local de todo o estabelcimento altere o IP para o seu nos seguites aruivos:
+. /client/package.json
+Mudar package.json > "scripts" > "start": "serve -s build",
