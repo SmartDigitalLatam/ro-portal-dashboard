@@ -5,5 +5,7 @@ export const Container = styled.div`
         background-color:#e3e3e3;
         border-radius:25px;
     }
-
+    .red{
+        background-color:red;
+    }
 `;

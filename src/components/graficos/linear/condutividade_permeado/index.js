@@ -1,163 +1,119 @@
-/* Util libraries .*/
-import React, { Component } from 'react';
-import ReactApexChart from 'react-apexcharts';
-import ApexCharts from 'apexcharts';
+import React, {Component} from 'react';
+import {Line} from 'react-chartjs-2';
+import axios from 'axios';
 
-/* Variables to buildup the time that the chart'll update .*/
-var data = [];
-var data_list = [];
 
-/* Local variables that're used to build the data structure .*/
-let variable;
-let hour;
-let minutes;
-let seconds;
-let formated_hour;
-let date;
-let dia,mes,ano,formated_date;
-let add=0;
-
-// function resetData(){
-//   // Alternatively, you can also reset the data at certain intervals to prevent creating a huge series .
-//   data = data.slice(data.length - 10, data.length);
-// }
-
-export default class condutividade_permeado extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-    
-      series: [{
-        data: data_list.slice(),
-        name:'Valor' // Here goes the name that'll appear when u hover the marker .
-      }],
-      options: {
-        chart: {
-          id: 'realtime',
-          height: 250,
-          type: 'line',
-          animations: {
-            enabled: true,
-            easing: 'linear',
-            dynamicAnimation: {
-              speed: 1000 // The speed that the chart'll connect 2 lines .
-            }
-          },
-          zoom: {
-            type: 'x',
-            enabled: true,
-            autoScaleYaxis: true
-          },
-          toolbar: {
-            show: false,
-          }
-        },
-        dataLabels: {
-          enabled: false
-        },
-        stroke: {
-          curve: 'smooth',
-        },
-        title: {
-          text: 'Condutividade do Permeado',
-          align: 'center'
-        },
-        markers: {
-          size: 0
-        },
-        xaxis: {
-          type: 'category', // This type is a non-numeric so we can put everytype of data .
-          range: 100, // Here is the range of the X axis ...  so 100 = 100 values in the X axis .
-          title:{
-            text:'',
-          },
-          labels:{
-            show: true,
-          },
-          categories:{
-            offsetX:10
-          }
-        },
-        yaxis: {
-          max: 700, // Here goes the max value for the Y axis .
-          min: 300,
-          range:500,
-          title:{
-            text:'μS/cm',
-          }
-        },
-        legend: {
-          show: true,
-        },
-      },
-    };
-  }
-  componentDidMount() {
-    /* Function that keeps the chart updating after every 10 seconds .*/
-    window.setInterval(() => {
-      if(formated_date!==0){
-        if(data.length>0){
-          ApexCharts.exec('realtime', 'updateSeries', [{
-            data: data_list
-          }]);
+class condutividade_permeado extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            chartData:{}
         }
-      }
-    }, 3000);
+    }
+
+    componentDidMount(){
+        this.getChartData();
+    }
+
     
-    // Setting the URL to create a WebSocket connection with the back-end server .
-    this.ws = new WebSocket(this.props.data);
+    getChartData(){
 
-    this.ws.onmessage = e => {
-      /* Building the data structure that were text formated .*/
-      const value = JSON.parse(e.data);
-      var lista_teste=value.IotData.data;
-      var lista_converted='';
+        axios.get("/person").then(res => {
+       
+            const value = res.data;
+            let novo_array_date = [];
+            let novo_array_perm_conductivity = [];
+           
+            // pega o valor especifico dentro da aarray de obejtos e gera um anova array de objetos
+           value.map(function(i){
+                novo_array_date.push({
+                    "Date": i.Date,
+                
+                });
+            })
 
-      /* Uncrypting the data that comes from raspberry/plc .*/
-      lista_teste.map(function(item,i){
-        if(item!==32 && item!==0){
-          lista_converted=lista_converted+String.fromCharCode(item);
-        }
-      });
-      let dados = lista_converted.split(',');
+            value.map(function(i){
+                novo_array_perm_conductivity.push({
+                   
+                    "PermConductivity": i.PermConductivity,
+                });
+            })
+        
+            //pega apenas o valor da array de objeto transformando em uma array
+            let PermConductivityArray1 = novo_array_perm_conductivity.map(a => a.PermConductivity);
+            let DateArray1 = novo_array_date.map(a => a.Date);
+        
+            //converte a array de string em nnumeros
+            let PermConductivityArray2 = PermConductivityArray1.map(Number);
+            let DateArray2 = DateArray1;
 
-      /* Getting the date */
-      [, date] = dados[0].split(':');
-      [dia,mes,ano]=date.split('/');
-      /* Filtering variables */
-      [, variable] = dados[3].split(':');
-      /* Getting the exact hour */
-      [, hour, minutes, seconds] = dados[1].split(':');
-      formated_hour=`${date}-${hour}:${minutes}:${seconds}`;
-      
-      formated_date = `${dia}/${mes} ${hour}:${minutes}:${seconds}`;
+            let PermConductivityArray3 = PermConductivityArray2.reverse();
+            let DateArray3 = DateArray2.reverse();
+        
+            this.setState({
+                chartData:{
+                    labels: DateArray3,
+                    datasets: [
+                        {
+                            label: "Condutividade Permeado (μS/cm)",
+                            data: PermConductivityArray3,
+                            lineTension: 0.1,
+                            fill:false,
+                            backgroundColor: 'rgba(216,216,216,0.4)',
+                            borderColor: 'rgba(75,192,192,1)',
+                            borderCapStyle: 'butt',
+                            borderDash: [],
+                            borderDashOffset: 0.0,
+                            borderJoinStyle: 'miter',
+                            pointBorderColor: 'rgba(75,192,192,1)',
+                            pointBackgroundColor: '#fff',
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: 'rgba(75,192,192,1)',
+                            pointHoverBorderColor: 'rgba(220,220,220,1)',
+                            pointHoverBorderWidth: 2,
+                            pointRadius: 1,
+                            pointHitRadius: 10,
+                        }
+                    ]
+                }
+            });
+        });
+    }
 
-      /*
-       Creating a local variable that store the object that'll be sent to 
-       the Data of this chart .
-      */
-      let obj = {x:formated_date,y:parseFloat(variable)};
-      add=add+100;
-      data_list.push(obj);
 
-      /* Updating chart .*/
-      this.setState({
-        series:[{
-          data:data_list.slice(),
-        }]
-      });
-    };
-  }
-  componentWillUnmount() {
-    this.ws.close();
-  }
 
-  /* Rendering the component .*/
-  render() {
-    return (
-      <div>
-        <ReactApexChart options={this.state.options} series={this.state.series} type="line" height={350} />
-      </div>
-    );
-  }
+    render(){
+        return(
+            <div className = "condutividade_permeado">
+                
+                <Line
+                    data = {this.state.chartData}
+                    width = {1200}
+                    height = {400}
+                    options={{
+                        title:{
+                            display: true,
+                            text: 'Condutividade Permeado (μS/cm)',
+                            fontSize: 30
+                        },
+                        legend:{
+                            display:false,
+                            position: 'top',
+                        },
+                        scales:{
+                            yAxes:[{
+                                ticks: {
+                                    beginAtZero: false,
+                                }
+                            }]
+                        }
+                    }}
+                 />
+                
+            </div>
+        )
+    }
 }
+
+export default condutividade_permeado;

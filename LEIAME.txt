@@ -1,5 +1,24 @@
-Em hipótese alguma delete o          PACKAGE-LOCK.JSON
+﻿Em hipótese alguma delete o          PACKAGE-LOCK.JSON
 
 Para rodar a aplicação na rede local de todo o estabelcimento altere o IP para o seu nos seguites aruivos:
 . /client/package.json
 Mudar package.json > "scripts" > "start": "serve -s build",
+
+
+ESTE É O CÓDIGO QUE ESTÁ SENDO MODIFICADO - TROCA DE GRÁFICO "ONLINE" POR GRÁFICO COM DADOS DO COSMODB - DATA: 26-maio-2020
+
+PARA DEPLOY, REALIZAR A MODIFICAÇÃO FINAL:
+
+file package.json --> "proxy": "https://headspace-back.azurewebsites.net",
+para deploys no local host --> "proxy": "http://localhost:3000",
+
+para deploy >> script start > "start": "serve -s build",
+para deploy local machine >> script start > "start": "react-scripts start",
+
+------------------------------_-----------------------------
+PARA MUDAR OS GRAFICOS LINEARES
+
+1. Modificar o código fonte dentro da pasta adequada na rota: src > components > graficos > linear 
+2. Modificar a chamada da rota onde o código do gráfico foi feito na rota: src > components > dados > graphs_viewGraficos > index.js
+
+

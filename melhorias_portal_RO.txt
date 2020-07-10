@@ -1,0 +1,7 @@
+1 - Os valores do tempo zero para cálculos de normalização são inputados manualmente (e para saber o seu valor precisa de uma planilha do excel para realizar o seu cálculo ainda por cima), o que leva a: abrir o código, inputar o valor nos campos corretos e realizar o deploy do código modificado.
+Solução: 
+1.1 - capturar todos os dados do cosmoDB e procurar pelo primeiro valor
+1.2 - adicionar um campo para que cliente/associado BCK inpute o valor do tempo zero e esse valor seja capturado pelo código automaticamente.
+
+*Caso especial para a RO em Cajamar
+2* - Como não tem medidor de pressão no lado do permeado, o valor será considerado como 0;

@@ -1,438 +1,416 @@
-/* Util libraries .*/
-import React, { Component } from 'react';
-import ReactApexChart from 'react-apexcharts';
-import ApexCharts from 'apexcharts';
-import contas from '../../../calculos/calculos';
-// import { funcRejeicaoNormalizadaDeSalDoPermeado } from '../../../calculos/calculos'
-
-/* Variables to buildup the time that the chart'll update .*/
-var data = [];
-var data_list = [];
-
-/* Local variables that're used to build the data structure .*/
-let variable;
-let hour;
-let minutes;
-let seconds;
-let formated_hour;
-let date;
-let dia,mes,ano,formated_date;
-let add=0;
-let vazaoEntradaII;
-let vazaoPermeadoII;
-let vazaoConcentradoII;
-let pressaoEntradaII;
-let pressaoConcentradoII;
-let pressaoPermeadoI = 0.1;
-let condutividadeEntradaII;
-let condutividadePermeadoII;
-let temperaturaEntradaII;
+import React, {Component} from 'react';
+import {Line} from 'react-chartjs-2';
+import axios from 'axios';
 
 
-// function resetData(){
-//   // Alternatively, you can also reset the data at certain intervals to prevent creating a huge series .
-//   data = data.slice(data.length - 10, data.length);
-// }
-
-export default class rejeicao_normalizada_permeado extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-    
-      series: [{
-        data: data_list.slice(),
-        name:'Valor' // Here goes the name that'll appear when u hover the marker .
-      }],
-      options: {
-        chart: {
-          id: 'realtime',
-          height: 250,
-          type: 'line',
-          animations: {
-            enabled: true,
-            easing: 'linear',
-            dynamicAnimation: {
-              speed: 1000 // The speed that the chart'll connect 2 lines .
-            }
-          },
-          zoom: {
-            type: 'x',
-            enabled: true,
-            autoScaleYaxis: true
-          },
-          toolbar: {
-            show: false,
-          }
-        },
-        dataLabels: {
-          enabled: false
-        },
-        stroke: {
-          curve: 'smooth',
-        },
-        title: {
-          text: 'Rejeição Normalizada de Sal do Permeado',
-          align: 'center'
-        },
-        markers: {
-          size: 0
-        },
-        xaxis: {
-          type: 'category', // This type is a non-numeric so we can put everytype of data .
-          range: 100, // Here is the range of the X axis ...  so 100 = 100 values in the X axis .
-          title:{
-            text:'',
-          },
-          labels:{
-            show: true,
-          },
-          categories:{
-            offsetX:10
-          }
-        },
-        yaxis: {
-          max: 100, // Here goes the max value for the Y axis .
-          min: 80,
-          range:500,
-          title:{
-            text:'%',
-          },
-          decimalsInFloat: Number
-        },
-        legend: {
-          show: true,
-        },
-      },
-    };
-  }
-  componentDidMount() {
-    /* Function that keeps the chart updating after every 10 seconds .*/
-    window.setInterval(() => {
-      if(formated_date!==0){
-        if(data.length>0){
-          ApexCharts.exec('realtime', 'updateSeries', [{
-            data: data_list
-          }]);
+class rejeicao_sal_normalizada_permeado extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            chartData:{}
         }
-      }
-    }, 3000);
+    }
+
+    componentDidMount(){
+        this.getChartData();
+    }
+
     
-    // Setting the URL to create a WebSocket connection with the back-end server .
-    this.ws = new WebSocket(this.props.data);
+    getChartData(){
 
-    this.ws.onmessage = e => {
-      /* Building the data structure that were text formated .*/
-      const value = JSON.parse(e.data);
-      var lista_teste=value.IotData.data;
-      var lista_converted='';
-      
-      /* Uncrypting the data that comes from raspberry/plc */
-      lista_teste.map(function(item,i){
-        if(item!==32 && item!==0){
-          lista_converted=lista_converted+String.fromCharCode(item);
-        }
-      });
-      let dados = lista_converted.split(',');
-      
+        axios.get("/person").then(res => {
+       
+            const value = res.data;
+            let novo_array_date = [];
+            let novo_array_feed_pressure = [];
+            let novo_array_concentrated_pressure = [];
+            let novo_array_feed_conductivity = [];
+            let novo_array_perm_conductivity = [];
+            let novo_array_perm_flow = [];
+            let novo_array_concentrated_flow = [];
+            let novo_array_flow_feed = [];
+            let novo_array_feed_temperature = [];
+           
+            // pega o valor especifico dentro da aarray de obejtos e gera um anova array de objetos
+           value.map(function(i){
+                novo_array_date.push({
+                    "Date": i.Date,
+                   
+                });
+            })
 
-      /* Getting the date .*/
-      [, date] = dados[0].split(':');
-      [dia,mes,ano]=date.split('/');
-      /* Filtering variables .*/
-      [, variable] = dados[4].split(':');
-      /* Getting the exact hour .*/
-      [, hour, minutes, seconds] = dados[1].split(':');
-      formated_hour=`${date}-${hour}:${minutes}:${seconds}`;
-      
-      formated_date = `${dia}/${mes} ${hour}:${minutes}:${seconds}`;
+            value.map(function(i){
+                novo_array_feed_pressure.push({
+                   
+                    "FeedPressure": i.FeedPressure,
+                });
+            })
 
-      /**
-       * Create variable for calculated 
-       */
+            value.map(function(i){
+                novo_array_concentrated_pressure.push({
+                    
+                    "ConcentratedPressure": i.ConcentratedPressure,
+                });
+            })
+
+            value.map(function(i){
+                novo_array_feed_conductivity.push({
+                    "FeedConductivity": i.FeedConductivity,
+            
+                });
+            })
+
+            value.map(function(i){
+                novo_array_perm_conductivity.push({
+                   
+                    "PermConductivity": i.PermConductivity,
+                });
+            })
+
+            value.map(function(i){
+                novo_array_perm_flow.push({
+                    "PermFlow": i.PermFlow,
+                });
+            })
+
+            value.map(function(i){
+                novo_array_concentrated_flow.push({
+                    
+                    "ConcentratedFlow": i.ConcentratedFlow,
+                });
+            })
+
+            value.map(function(i){
+                novo_array_flow_feed.push({
+                    "FeedFlow": i.FeedFlow,
+                });
+            })
+
+            value.map(function(i){
+                novo_array_feed_temperature.push({
+                    "FeeTemperature": i.FeeTemperature,
+                });
+            })
         
-      [, vazaoPermeadoII] = dados[6].split(':');
-      [, vazaoConcentradoII] = dados[7].split(':');
-      [, pressaoEntradaII] = dados[9].split(':');
-      [, pressaoConcentradoII] = dados[11].split(':');
-      [, condutividadeEntradaII] = dados[2].split(':');
-      [, condutividadePermeadoII] = dados[3].split(':');
-      [, temperaturaEntradaII] = dados[5].split(':');
-      // [, vazaoEntradaII] = dados[8].split(':');
+            //pega apenas o valor da array de objeto transformando em uma array
+            let FeedPressureArray1 = novo_array_feed_pressure.map(a => a.FeedPressure);
+            let ConcentratedPressureArray1 = novo_array_concentrated_pressure.map(a => a.ConcentratedPressure);
+            let FeedConductivityArray1 = novo_array_feed_conductivity.map(a => a.FeedConductivity);
+            let PermConductivityArray1 = novo_array_perm_conductivity.map(a => a.PermConductivity);
+            let PermFlowArray1 = novo_array_perm_flow.map(a => a.PermFlow);
+            let ConcentratedFlowArray1 = novo_array_concentrated_flow.map(a => a.ConcentratedFlow);
+            let FeedFlowArray1 = novo_array_flow_feed.map(a => a.FeedFlow);
+            let FeeTemperatureArray1 = novo_array_feed_temperature.map(a => a.FeeTemperature);
+            let DateArray1 = novo_array_date.map(a => a.Date);
+        
+            //converte a array de string em nnumeros
+            let FeedPressureArray2 = FeedPressureArray1.map(Number);
+            let ConcentratedPressureArray2 = ConcentratedPressureArray1.map(Number);
+            let FeedConductivityArray2 = FeedConductivityArray1.map(Number);
+            let PermConductivityArray2 = PermConductivityArray1.map(Number);
+            let PermFlowArray2 = PermFlowArray1.map(Number);
+            let ConcentratedFlowArray2 = ConcentratedFlowArray1.map(Number);
+            let FeedFlowArray2 = FeedFlowArray1.map(Number);
+            let FeeTemperatureArray2 = FeeTemperatureArray1.map(Number);
+            let DateArray2 = DateArray1;
 
-      let vazaoPermeadoI = parseFloat(vazaoPermeadoII);
-      let vazaoConcentradoI = parseFloat(vazaoConcentradoII)
-      let pressaoEntradaI = parseFloat(pressaoEntradaII)
-      let pressaoConcentradoI = parseFloat(pressaoConcentradoII)
-      let condutividadeEntradaI = parseFloat(condutividadeEntradaII)
-      let condutividadePermeadoI = parseFloat(condutividadePermeadoII)
-      let temperaturaEntradaI = parseFloat(temperaturaEntradaII)
-      // let vazaoEntradaI = parseFloat(vazaoEntradaII);
+            let FeedPressureArray3 = FeedPressureArray2.reverse();
+            let ConcentratedPressureArray3 = ConcentratedPressureArray2.reverse();
+            let FeedConductivityArray3 = FeedConductivityArray2.reverse();
+            let PermConductivityArray3 = PermConductivityArray2.reverse();
+            let PermFlowArray3 = PermFlowArray2.reverse();
+            let ConcentratedFlowArray3 = ConcentratedFlowArray2.reverse();
+            let FeedFlowArray3 = FeedFlowArray2.reverse();
+            let FeeTemperatureArray3 = FeeTemperatureArray2.reverse();
+            let DateArray3 = DateArray2.reverse();
 
-      const vazaoPermeadoZero = 60.94;
-      const vazaoConcentradoZero = 20.74;
-      const pressaoEntrada = 8.76;
-      const pressaoConcentradoZero = 7.68;
-      const pressaoPermeadoZero = 6.14;
-      const condutividadePermeadoZero = 2;
-      const temperaturaEntradaZero = 25;
-      const pressureNetDrivingZero = 2.02514;
-      const correcaoTemperaturaZero = 1;
-      const concentracaoMediaCalculadaEntradaZero = 69.087149;
-      const TDSCalculatedFeedZero = 37.603419;
-      /**
-       * Calulate
-       */
-      function funcTDSCalculatedFeed(condutividadeEntradaI) {
-        if (condutividadeEntradaI == 0) { //TODO; Confirmar variavel ()
-            let TDSCalculatedFeed;
-            return TDSCalculatedFeed = 0;
-        }
-        if (condutividadeEntradaI > 0 && condutividadeEntradaI <= 7630) {
-            let TDSCalculatedFeed = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(condutividadeEntradaI), 2) / 188.88442227);
-            return TDSCalculatedFeed;
-        }
-        if (condutividadeEntradaI > 7630) {
-            let TDSCalculatedFeed = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(condutividadeEntradaI), 2) / 112.483950289);
-            return TDSCalculatedFeed;
-    
-        }
-    }
-    let TDSCalculatedFeed = funcTDSCalculatedFeed(condutividadeEntradaI);
-    // console.log(`Condutividade de Entrada: ${TDSCalculatedFeed}`);
-    
-    function funcTDSFeed(condutividadeEntradaI) {
-        let TDSFeedI = condutividadeEntradaI * 0.7;
-        return TDSFeedI;
-    }
-    let TDSFeedI = funcTDSFeed(condutividadeEntradaI);
-    // console.log(`TDS feed: ${TDSFeedI}`);
-    
-    function funcTDSCalculatedPermeado(condutividadePermeadoI) {
-        if (condutividadePermeadoI == 0) { //TODO; Confirmar variavel ()
-            return TDSCalculatedPermeado = 0;
-        }
-        if (condutividadePermeadoI > 0 && condutividadePermeadoI <= 7630) {
-            let TDSCalculatedPermeado = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(condutividadePermeadoI), 2) / 188.88442227);
-            return TDSCalculatedPermeado;
-        }
-        if (condutividadePermeadoI > 7630) {
-            let TDSCalculatedPermeado = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(condutividadePermeadoI), 2) / 112.483950289);
-            return TDSCalculatedPermeado;
-        }
-    }
-    
-    let TDSCalculatedPermeado = funcTDSCalculatedPermeado(condutividadePermeadoI);
-    // console.log(`TDS Calculated Permeado: ${TDSCalculatedPermeado}`);
-    
-    function funcTDSPermeado(condutividadePermeadoI) {
-        let TDSPermeado = condutividadePermeadoI * 0.7;
-        return TDSPermeado;
-    }
-    
-    let TDSPermeado = funcTDSPermeado(condutividadePermeadoI);
-    // console.log(`TDS Permeado: ${TDSPermeado}`);
-    
-    function funcVazaoEntrada(vazaoPermeadoI, vazaoConcentradoI) {
-        let vazaoEntrada = vazaoPermeadoI + vazaoConcentradoI;
-        return vazaoEntrada;
-    }
-    
-    let vazaoEntradaI = parseFloat(funcVazaoEntrada(vazaoPermeadoI, vazaoConcentradoI));
-    // console.log(`Vazão de Entrada: ${vazaoEntradaI}`);
-    
-    function funcPressaoDiferencial(pressaoEntradaI, pressaoConcentradoI) {
-    
-        if (pressaoEntradaI > 0) {
-            let pressaoDiferencialI = pressaoEntradaI - pressaoConcentradoI; //TODO; confiarmar variaveis (x)
-            return pressaoDiferencialI
-        }
-        if (pressaoEntradaI <= 0) {
-            let pressaoDiferencialI = 0;
-            return pressaoDiferencialI
-        }
-    }
-    
-    let pressaoDiferencialI = funcPressaoDiferencial(pressaoEntradaI, pressaoConcentradoI);
-    // console.log(`Pressão Diferencial: ${pressaoDiferencialI}`);
-    
-    function funcCorrecaoTemperatura(temperaturaEntradaI) {
-        if (temperaturaEntradaI <= 0) {
-            let correcaoTemperatura = 0;
-            return correcaoTemperatura;
-        } else {
-            let correcaoTemperatura = Math.exp(2640 * ((1 / 298.15) - 1 / (temperaturaEntradaI + 273.15)));
-            return correcaoTemperatura;
-        }
-    }
-    
-    let correcaoTemperatura = funcCorrecaoTemperatura(temperaturaEntradaI);
-    // console.log(`Correção do fator de Temperatura: ${correcaoTemperatura}`);
-    
-    function funcConcentracaoMediaCalculadaEntrada(TDSCalculatedFeed, vazaoPermeadoI, condutividadeEntradaI, vazaoEntradaI, TDSFeedI) {
-        if (vazaoPermeadoI > 0) {
-            if (condutividadeEntradaI > 0) {
-                let concentracaoMediaCalculadaEntrada = TDSCalculatedFeed * Math.log(1 / (1 - vazaoPermeadoI / vazaoEntradaI)) / (vazaoPermeadoI / vazaoEntradaI);
-                return concentracaoMediaCalculadaEntrada;
-                if (condutividadeEntradaI <= 0) {
-                    let concentracaoMediaCalculadaEntrada = TDSFeedI * Math.log(1 / (1 - vazaoPermeadoI / vazaoEntradaI)) / (vazaoPermeadoI / vazaoEntradaI);
-                    return concentracaoMediaCalculadaEntrada;
+            //----------------------------------------DEFINIÇÃO DE VARIÁVEIS MANUAIS-------------------------------
+
+            let pressao_permeado = 0;
+            let pressao_net_driving_zero = 0;
+            let Temp_correcao_zero = 1.047;
+            let conc_media_calculada_entrada_zero = 0;
+            let vazao_permeado_zero = 0;
+            let TDS_entrada_calculado_zero = 132.958;
+        
+
+            //----------------------------------------INÍCIO DOS CÁLCULOS-----------------------------------------------------
+
+            //cálculo da PRESSÃO DIFERENCIAL: pressão entrada - pressão concentrado estágio final (kgf/cm²)
+            let PressaoDif = [];
+            let i = 0;
+            for (i=0; i < FeedPressureArray3.length+1; i++)
+            {
+                if (FeedPressureArray3[i]>0){
+                PressaoDif[i] = FeedPressureArray3[i] - ConcentratedPressureArray3[i];
+                }
+                else PressaoDif[i] = 0; 
+            }
+
+            //cálculo do TDS ENTRADA CALCULADO (ppm)
+            let TDS_entrada_calculado = [];
+            for (i=0; i < FeedConductivityArray3.length+1; i++)
+            {
+                if (FeedConductivityArray3[i] == 0) 
+                { 
+                    TDS_entrada_calculado[i] = 0;
+                }
+                if (FeedConductivityArray3[i] > 0 && FeedConductivityArray3[i] <= 7630) 
+                {
+                    TDS_entrada_calculado[i] = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(FeedConductivityArray3[i]), 2) / 188.88442227);
+                }
+                if (FeedConductivityArray3[i] > 7630) {
+                    TDS_entrada_calculado[i] = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(FeedConductivityArray3[i]), 2) / 112.483950289);
                 }
             }
-            if (vazaoPermeadoI <= 0) {
-                let concentracaoMediaCalculadaEntrada;
-                return concentracaoMediaCalculadaEntrada = 0;
+
+            //cálculo do TDS ENTRADA (sem fórmula e multiplicadopor 0.7 apenas) (ppm)
+            let TDS_entrada = [];
+            for (i=0; i < FeedConductivityArray3.length+1; i++)
+            {
+                TDS_entrada[i] = FeedConductivityArray3[i]*0.7;
             }
-        }
-    }
-    let concentracaoMediaCalculadaEntrada = funcConcentracaoMediaCalculadaEntrada(TDSCalculatedFeed, vazaoPermeadoI, condutividadeEntradaI, vazaoEntradaI, TDSFeedI);
-    // console.log(`Concentração Média de Entrada Calculada: ${concentracaoMediaCalculadaEntrada}`);
-    
-    function funcPressaoOsmoticaEntrada(pressaoEntradaI, temperaturaEntradaI, concentracaoMediaCalculadaEntrada) {
-        if (pressaoEntradaI > 0 && temperaturaEntradaI > 0) {
-            let pressaoOsmoticaEntradaI = 0.0385 * concentracaoMediaCalculadaEntrada * (temperaturaEntradaI + 273.15) / ((1000 - (concentracaoMediaCalculadaEntrada / 1000)) * 14.25);
-            return pressaoOsmoticaEntradaI;
-    
-            //TODO; confirmar se tem o .015 (x)
-        }
-    
-        if (pressaoEntradaI <= 0 || temperaturaEntradaI <= 0) {
-            let pressaoOsmoticaEntradaI = 0
-            return pressaoOsmoticaEntradaI
-        }
-    }
-    
-    let pressaoOsmoticaEntradaI = funcPressaoOsmoticaEntrada(pressaoEntradaI, temperaturaEntradaI, concentracaoMediaCalculadaEntrada);
-    // console.log(`Pressão Osmotica de Entrada: ${pressaoOsmoticaEntradaI}`);
-    
-    function funcPressaoOsmoticaPermeado(pressaoEntradaI, condutividadePermeadoI, TDSCalculatedPermeado, TDSPermeado) {
-    
-        if (pressaoEntradaI <= 0) {
-            let pressaoOsmoticaPermeado;
-            return pressaoOsmoticaPermeado = 0;
-        }
-        if (pressaoEntradaI > 0 && condutividadePermeadoI > 0 && temperaturaEntradaI > 0) {
-            let pressaoOsmoticaPermeado = ((0.0385 * TDSCalculatedPermeado * (temperaturaEntradaI + 273.15)) / (1000 - (TDSCalculatedPermeado / 1000))) / 14.25;
-            return pressaoOsmoticaPermeado;
-    
-        }
-        if (pressaoEntradaI > 0 && condutividadePermeadoI > 0 && temperaturaEntradaI <= 0) {
-            let pressaoOsmoticaPermeado;
-            return pressaoOsmoticaPermeado = 0;
-        }
-    
-        if (pressaoEntradaI > 0 && condutividadePermeadoI <= 0) {
-            if (TDSPermeado <= 0 || temperaturaEntradaI <= 0) {
-                let pressaoOsmoticaPermeado;
-                return pressaoOsmoticaPermeado = 0;
-            } else {
-                let pressaoOsmoticaPermeado = ((0.0385 * TDSPermeado * (temperaturaEntradaI + 273.15)) / (1000 - (TDSPermeado / 1000))) / 14.25;
-                return pressaoOsmoticaPermeado;
-            }
-    
-        }
-    }
-    
-    let pressaoOsmoticaPermeado = funcPressaoOsmoticaPermeado(pressaoEntradaI, condutividadePermeadoI, TDSCalculatedPermeado, TDSPermeado);
-    // console.log(`Pressâo Osmotica do Permeado: ${pressaoOsmoticaPermeado}`);
-    
-    function funcPressureNetDriving(pressaoEntradaI, pressaoDiferencialI, pressaoOsmoticaEntradaI, pressaoPermeadoI, pressaoOsmoticaPermeado) {
-        let pressureNetDrivingI
-    
-        if (pressaoEntradaI > 0) {
-            return pressureNetDrivingI = pressaoEntradaI - (pressaoDiferencialI / 2) - pressaoOsmoticaEntradaI - pressaoPermeadoI + pressaoOsmoticaPermeado; //TODO; confirmar variavel (x)
             
-        }
-        if (pressaoEntradaI <= 0) {
-            return pressureNetDrivingI = 0;
-        }
-    }
-    let pressureNetDrivingI = funcPressureNetDriving(pressaoEntradaI, pressaoDiferencialI, pressaoOsmoticaEntradaI, pressaoPermeadoI, pressaoOsmoticaPermeado);
-    // console.log(`Pressure Net Driving: ${pressureNetDrivingI}`);
-    
-    function funcVazaoNormalizadaPermeado(vazaoPermeadoI, pressureNetDrivingZero, pressureNetDrivingI, correcaoTemperatura, correcaoTemperaturaZero) {
-        let vazaoNormalizadaPermeado
-        if (vazaoPermeadoI > 0) {
-            return vazaoNormalizadaPermeado = (pressureNetDrivingZero * correcaoTemperaturaZero) / (pressureNetDrivingI * correcaoTemperatura) * vazaoPermeadoI;
-          
-        }
-        if (vazaoPermeadoI < 0) {
-            return vazaoNormalizadaPermeado = 0;
-        }
-    }
-    
-    let vazaoNormalizadaPermeado = funcVazaoNormalizadaPermeado(vazaoPermeadoI, pressureNetDrivingZero, pressureNetDrivingI, correcaoTemperatura, correcaoTemperaturaZero);
-    // console.log(`Vazão Normalizada do Permeado:${vazaoNormalizadaPermeado}`);
-     
-    function funcPassagemNormalizadaDeSalDoPermeado(vazaoPermeadoI,condutividadeEntradaI,TDSCalculatedPermeado, correcaoTemperaturaZero, concentracaoMediaCalculadaEntradaZero, vazaoPermeadoZero, TDSCalculatedFeedZero, concentracaoMediaCalculadaEntrada, TDSPermeado) {
-        let PassagemNormalizadaDeSalDoPermeado;
-        if (vazaoPermeadoI <= 0) {
-            return PassagemNormalizadaDeSalDoPermeado = 0;
-        }
-        if (vazaoPermeadoI > 0 && condutividadeEntradaI > 0) {
-            return PassagemNormalizadaDeSalDoPermeado = TDSCalculatedPermeado * vazaoPermeadoI * correcaoTemperaturaZero * concentracaoMediaCalculadaEntradaZero / (vazaoPermeadoZero * correcaoTemperatura * concentracaoMediaCalculadaEntrada * TDSCalculatedFeedZero) * 100;
-        }
-        if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI > 0) {
-            return PassagemNormalizadaDeSalDoPermeado = TDSPermeado * vazaoPermeadoI * correcaoTemperaturaZero * concentracaoMediaCalculadaEntradaZero / (vazaoPermeadoZero * correcaoTemperatura * concentracaoMediaCalculadaEntrada * TDSCalculatedFeedZero) * 100;
-    
-        }
-        if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI <= 0) {
-            return PassagemNormalizadaDeSalDoPermeado = 0;
-    
-        }
-    }
-    
-    let PassagemNormalizadaDeSalDoPermeado = funcPassagemNormalizadaDeSalDoPermeado(vazaoPermeadoI,condutividadeEntradaI,TDSCalculatedPermeado, correcaoTemperaturaZero, concentracaoMediaCalculadaEntradaZero, vazaoPermeadoZero, TDSCalculatedFeedZero,concentracaoMediaCalculadaEntrada, TDSPermeado);
-    // console.log(`Passagem Normalizada de Sal: ${PassagemNormalizadaDeSalDoPermeado}`);
-    
-    function funcRejeicaoNormalizadaDeSalDoPermeado(vazaoPermeadoI, condutividadeEntradaI, PassagemNormalizadaDeSalDoPermeado, TDSFeedI) {
-        let RejeicaoNormalizadaDeSalDoPermeado
-        if (vazaoPermeadoI <= 0) {
-            return RejeicaoNormalizadaDeSalDoPermeado = 0; 
-        }
-        if (vazaoPermeadoI > 0 && condutividadeEntradaI > 0) {
-            return RejeicaoNormalizadaDeSalDoPermeado = 100 - PassagemNormalizadaDeSalDoPermeado; 
-    
-        }
-        if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI > 0) {
-            return RejeicaoNormalizadaDeSalDoPermeado = 100 - PassagemNormalizadaDeSalDoPermeado; 
-    
-        }
-        if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI <= 0) {
-            return RejeicaoNormalizadaDeSalDoPermeado = 0; 
-    
-        }
-    }
-    
-    let RejeicaoNormalizadaDeSalDoPermeado = funcRejeicaoNormalizadaDeSalDoPermeado(vazaoPermeadoI, condutividadeEntradaI, PassagemNormalizadaDeSalDoPermeado, TDSFeedI);
-    // console.log(`Reijeção Normalizada de Sal do Permeado: ${RejeicaoNormalizadaDeSalDoPermeado}`);
+            //cálculo do TDS PERMEADO CALCULADO (ppm)
+            let TDS_permeado_calculado = [];
+            for (i=0; i < PermConductivityArray3.length+1; i++)
+            {
+                if (PermConductivityArray3[i] == 0) 
+                { 
+                    TDS_permeado_calculado[i] = 0;
+                }
+                if (PermConductivityArray3[i] > 0 && PermConductivityArray3[i] <= 7630) 
+                {
+                    TDS_permeado_calculado[i] = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(PermConductivityArray3[i]), 2) / 188.88442227);
+                }
+                if (PermConductivityArray3[i] > 7630) 
+                {
+                    TDS_permeado_calculado[i] = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(PermConductivityArray3[i]), 2) / 112.483950289);
+                }
+            }
 
-      /*
-       Creating a local variable that store the object that'll be sent to 
-       the Data of this chart .
-      */
-      let obj = {x:formated_date,y:parseFloat(RejeicaoNormalizadaDeSalDoPermeado)};
-      
-      add=add+100;
-      data_list.push(obj);
+            //cálculo do TDS PERMEADO (ppm)
+            let TDS_permeado = [];
+            for (i=0; i < PermConductivityArray3.length+1; i++)
+            {
+                TDS_permeado[i] = PermConductivityArray3[i]*0.7;
+            }
 
-      /* Updating chart . */
-      this.setState({
-        series:[{
-          data:data_list.slice(),
-        }]
-      });
-    };
-  }
-  componentWillUnmount() {
-    this.ws.close();
-  }
+            //cálculo TEMPERATURA CORREÇÃO
+            let Temp_correcao = [];
+            for (i=0; i < FeeTemperatureArray3.length+1; i++)
+            {
+                if (FeeTemperatureArray3[i] <= 0) 
+                { 
+                    Temp_correcao[i] = 0;
+                }
+                if (FeeTemperatureArray3[i] > 0 ) 
+                {
+                    Temp_correcao[i] = Math.exp(2640 * ((1 / 298.15) - 1 / (FeeTemperatureArray3[i] + 273.15)));
+                }
+            }
 
-  /* Rendering the component . */
-  render() {
-    return (
-      <div>
-        <ReactApexChart options={this.state.options} series={this.state.series} type="line" height={350} />
-      </div>
-    );
-  }
+            //cálculo CONCENTRAÇÃO MÉDIA CALCULADA ENTRADA (ppm)
+            let conc_media_calculada_entrada = [];
+            for (i=0; i < PermFlowArray3.length+1; i++)
+            {
+                if (PermFlowArray3[i] > 0) 
+                { 
+                   if (FeedConductivityArray3[i] > 0)
+                   {
+                    conc_media_calculada_entrada[i] = TDS_entrada_calculado[i] * Math.log(1 / (1 - PermFlowArray3[i] / FeedFlowArray3[i])) / (PermFlowArray3[i] / FeedFlowArray3[i]); 
+                   }
+                   if (FeedConductivityArray3[i] <= 0)
+                   {
+                    conc_media_calculada_entrada[i] = TDS_entrada[i] * Math.log(1 / (1 - PermFlowArray3[i] / FeedFlowArray3[i])) / (PermFlowArray3[i] / FeedFlowArray3[i]);   
+                   }
+                }
+                if (PermFlowArray3[i] <= 0)
+                {
+                conc_media_calculada_entrada[i] = 0;
+                }
+            }
+
+            //cálculo PRESSÃO OSMÓTICA ENTRADA (kgf/cm²)
+            let pressao_osmotica_entrada = [];
+            for (i=0; i < FeedPressureArray3.length+1; i++)
+            {
+                if (FeedPressureArray3[i] > 0 && FeeTemperatureArray3[i] > 0)
+                {
+                pressao_osmotica_entrada[i] = 0.0385 * conc_media_calculada_entrada[i] * (FeeTemperatureArray3[i] + 273.15) / ((1000 - (conc_media_calculada_entrada[i] / 1000)) * 14.25);
+                }
+                if (FeedPressureArray3[i] <= 0 || FeeTemperatureArray3[i] <= 0 )
+                {
+                pressao_osmotica_entrada[i] = 0;
+                }
+            }
+
+            //cálculo PRESSÃO OSMÓTICA PERMEADO (kgf/cm²)
+            let pressao_osmotica_permeado = [];
+            for (i=0; i < FeedPressureArray3.length+1; i++)
+            {
+                if (FeedPressureArray3[i] <= 0)
+                {
+                    pressao_osmotica_permeado[i] = 0;
+                }
+                if (FeedPressureArray3[i] > 0 && PermConductivityArray3[i] > 0 && FeeTemperatureArray3[i] > 0)
+                {
+                    pressao_osmotica_permeado[i] = ((0.0385 * TDS_permeado_calculado[i] * (FeeTemperatureArray3[i] + 273.15)) / (1000 - (TDS_permeado_calculado[i] / 1000))) / 14.25;
+                }
+                if (FeedPressureArray3[i] > 0 && PermConductivityArray3[i] > 0 && FeeTemperatureArray3[i] <= 0)
+                {
+                    pressao_osmotica_permeado[i] = 0;
+                }
+                if (FeedPressureArray3[i] > 0 && PermConductivityArray3[i] <= 0)
+                {
+                    if (TDS_permeado[i] <=0 || FeeTemperatureArray3[i] <= 0)
+                    {
+                        pressao_osmotica_permeado[i] = 0;
+                    }
+                    if (TDS_permeado[i] > 0 && FeeTemperatureArray3[i] > 0)
+                    {
+                        pressao_osmotica_permeado[i] = ((0.0385 * TDS_permeado[i] * (FeeTemperatureArray3[i] + 273.15)) / (1000 - (TDS_permeado[i] / 1000))) / 14.25;
+                    }
+                }
+            }
+
+            // cálculo da PRESSÃO NET DRIVING
+            let pressao_net_driving = [];
+            for (i=0; i < FeedPressureArray3.length+1; i++)
+            {
+                if (FeedPressureArray3[i] > 0)
+                {
+                    pressao_net_driving[i] = FeedPressureArray3[i] - (PressaoDif[i] / 2) - pressao_osmotica_entrada[i] - pressao_permeado + pressao_osmotica_permeado[i];
+                }
+                if (FeedPressureArray3[i] <= 0)
+                {
+                    pressao_net_driving[i] = 0;
+                }
+            }
+
+            //cálculo VAZÃO NORMALIZADA DO PERMEADO (m³/h)
+            let vazao_normalizada_permeado = [];
+            for (i=0; i < PermFlowArray3.length+1; i++)
+            {
+                if (PermFlowArray3[i] > 0)
+                {
+                    vazao_normalizada_permeado[i] = (pressao_net_driving_zero * Temp_correcao_zero) / (pressao_net_driving[i] * Temp_correcao[i]) * PermFlowArray3[i];
+                }
+                if (PermFlowArray3[i] <= 0)
+                {
+                    vazao_normalizada_permeado[i] = 0;
+                }
+            }
+
+            //cálculo da PASSAGEM SAL NORMALIZADA PERMEADO (%)
+            let passagem_normalizada = [];
+            for (i=0; i < PermFlowArray3.length+1; i++)
+            {
+                if (PermFlowArray3[i] <= 0)
+               {
+                passagem_normalizada[i] = 0;
+               }
+               if (PermFlowArray3[i] > 0 && FeedConductivityArray3[i] > 0)
+               {
+                passagem_normalizada[i] = TDS_permeado_calculado[i] * PermFlowArray3[i] * Temp_correcao_zero * conc_media_calculada_entrada_zero / (vazao_permeado_zero * Temp_correcao[i] * conc_media_calculada_entrada[i] * TDS_entrada_calculado_zero) * 100;
+               }
+               if (PermFlowArray3[i] > 0 && FeedConductivityArray3[i] <= 0 && TDS_entrada[i] > 0)
+               {
+                passagem_normalizada[i] = TDS_permeado[i] * PermFlowArray3[i] * Temp_correcao_zero * conc_media_calculada_entrada_zero / (vazao_permeado_zero * Temp_correcao[i] * conc_media_calculada_entrada[i] * conc_media_calculada_entrada[i]) * 100;
+               }
+               if (PermFlowArray3[i] > 0 && FeedConductivityArray3[i] <= 0 && TDS_entrada[i] <= 0)
+               {
+                passagem_normalizada[i] = 0;
+               }
+            }
+
+            //cálculo REJEIÇÃO SAL NORMALIZADA PERMEADO (%)
+            let rejeicao_normalizada = [];
+            for (i=0; i < PermFlowArray3.length+1; i++)
+            {
+                if (PermFlowArray3[i] <= 0)
+                {
+                    rejeicao_normalizada[i] = 0;
+                }
+                if (PermFlowArray3[i] > 0 && FeedConductivityArray3[i] > 0)
+                {
+                    rejeicao_normalizada[i] = 100 - passagem_normalizada[i];
+                }
+                if (PermFlowArray3[i] > 0 && FeedConductivityArray3[i] <= 0 && TDS_entrada[i] > 0)
+                {
+                    rejeicao_normalizada[i] = 100 - passagem_normalizada[i];
+                }
+                if (PermFlowArray3[i] > 0 && FeedConductivityArray3[i] <= 0 && TDS_entrada[i] <= 0)
+                {
+                    rejeicao_normalizada[i] = 0;
+                }
+            }
+
+            //----------------------------------------FIM DOS CÁLCULOS-----------------------------------------------------
+            this.setState({
+                chartData:{
+                    labels: DateArray3,
+                    datasets: [
+                        {
+                            label: "Rejeição de Sal Normalizada do Permeado (%)",
+                            data: rejeicao_normalizada,
+                            lineTension: 0.1,
+                            fill:false,
+                            backgroundColor: 'rgba(216,216,216,0.4)',
+                            borderColor: 'rgba(75,192,192,1)',
+                            borderCapStyle: 'butt',
+                            borderDash: [],
+                            borderDashOffset: 0.0,
+                            borderJoinStyle: 'miter',
+                            pointBorderColor: 'rgba(75,192,192,1)',
+                            pointBackgroundColor: '#fff',
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: 'rgba(75,192,192,1)',
+                            pointHoverBorderColor: 'rgba(220,220,220,1)',
+                            pointHoverBorderWidth: 2,
+                            pointRadius: 1,
+                            pointHitRadius: 10,
+                        }
+                    ]
+                }
+            });
+        });
+    }
+
+
+
+    render(){
+        return(
+            <div className = "rejeicao_sal_normalizada_permeado">
+                
+                <Line
+                    data = {this.state.chartData}
+                    width = {1200}
+                    height = {400}
+                    options={{
+                        title:{
+                            display: true,
+                            text: 'Rejeição de Sal Normalizada do Permeado (%)',
+                            fontSize: 30
+                        },
+                        legend:{
+                            display:false,
+                            position: 'top',
+                        },
+                        scales:{
+                            yAxes:[{
+                                ticks: {
+                                    beginAtZero: false,
+                                }
+                            }]
+                        }
+                    }}
+                 />
+                
+            </div>
+        )
+    }
 }
+
+export default rejeicao_sal_normalizada_permeado;

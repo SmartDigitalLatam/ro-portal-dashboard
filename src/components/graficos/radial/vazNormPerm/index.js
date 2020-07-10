@@ -3,37 +3,11 @@ import React, { Component } from 'react';
 import Chart from 'react-apexcharts';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
+import axios from 'axios';
 
 /* Style from local folder .*/
 import { Container } from './styles';
 
-/* Local variables that'll build the data that comes from back-end .*/
-// let var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11,var12;
-// let hour;
-// let minutes;
-// let seconds;
-// let formated_hour;
-// let date;
-
-let variable
-let hour;
-let minutes;
-let seconds;
-let formated_hour;
-let date;
-let dia,mes,ano,formated_date;
-let add=0;
-let vazaoEntradaII;
-let vazaoPermeadoII;
-let vazaoConcentradoII;
-let pressaoEntradaII;
-let pressaoConcentradoII;
-let pressaoPermeadoI = 0.1;
-let condutividadeEntradaII;
-let condutividadePermeadoII;
-let temperaturaEntradaII;
-
-let button=0;
 
 class RadialBar extends Component {  
   constructor(props) {
@@ -71,7 +45,7 @@ class RadialBar extends Component {
           },
           track: {
             background: '#fff',
-            strokeWidth: '10%',
+            strokeWidth: '1%',
             margin: 0, // margin is in pixels
             dropShadow: {
               enabled: true,
@@ -89,16 +63,14 @@ class RadialBar extends Component {
               color: '#888',
               /* Function that format the text inside the chart(Break lines) .*/
               formatter: function(val) {
-                let texto = [`Vazão`, `Normalizada`, `do Permeado`];
+                let texto = [`SOS Flow`, 'Rate Qual'];
                 return texto;
-                // let texto=val.split(' ');
-                //return [`${texto[0]}`,`${texto[1]} ${texto[2]}`,texto[3]];
               },
             },
             value: {
               /* Function that adds a '%' in the value of the chart .*/
               formatter: function(val) {
-                return [parseFloat(val/10)+' m³/h',];
+                return [parseFloat(val)];
               },
               color:'#888',
               show: true,
@@ -112,7 +84,7 @@ class RadialBar extends Component {
           gradient: {
             shade: 'dark',
             type: 'vertical',
-            shadeIntensity: 0.5,
+            shadeIntensity: 0.1,
             gradientToColors: ['#ABE5A1'],
             inverseColors: true,
             opacityFrom: 1,
@@ -123,344 +95,256 @@ class RadialBar extends Component {
         stroke: {
           lineCap: 'round'
         },
-        //labels: ['Vazão Normalizada do Permeado'],
       },
       series: [0], // Value that goes to the radial chart .
     }
   }
   componentDidMount() {
 
-    // Setting the URL to create a WebSocket connection with the back-end server .
-    this.ws = new WebSocket(this.props.url);
-    
-    this.ws.onmessage = e => {
-      /* Building the data structure that were text formated .*/
-      const value = JSON.parse(e.data);
-      var lista_teste=value.IotData.data;
-      var lista_converted='';
-      
-      /* Uncrypting the data that comes from raspberry/plc .*/
-      lista_teste.map(function(item,i){
-        if(item!==32 && item!==0){
-          lista_converted=lista_converted+String.fromCharCode(item);
-        }
-      });
-      let dados = lista_converted.split(',');
-
-      /* Getting the date .*/
-      // [, date] = dados[0].split(':');
-      // /* Filtering variables .*/
-      // [,var1] = dados[2].split(':');
-      // [,var2] = dados[3].split(':');
-      // [,var3] = dados[4].split(':');
-      // [,var4] = dados[5].split(':');
-      // [,var5] = dados[6].split(':');
-      // [,var6] = dados[7].split(':');
-      // [,var7] = dados[8].split(':');
-      // [,var8] = dados[9].split(':');
-      // [,var9] = dados[10].split(':');
-      // [,var10] = dados[11].split(':');
-      // [,var11] = dados[12].split(':');
-      // [var11,] = var11.split('}');
-    
-      // /* Getting the exact hour .*/
-      // [, hour, minutes, seconds] = dados[1].split(':');
-      // formated_hour=`${hour}:${minutes}:${seconds}`;
-
-      [, date] = dados[0].split(':');
-      [dia,mes,ano]=date.split('/');
-      /* Filtering variables */
-      [, variable] = dados[2].split(':');
-      /* Getting the exact hour */
-      [, hour, minutes, seconds] = dados[1].split(':');
-      formated_hour=`${date}-${hour}:${minutes}:${seconds}`;
-      
-      formated_date = new Date(ano,mes-1,dia,hour,minutes,seconds);
-
-      
-      /**
-       * Create variable for calculated 
-       */
-      
-          
-      [, vazaoPermeadoII] = dados[6].split(':');
-      [, vazaoConcentradoII] = dados[7].split(':');
-      [, pressaoEntradaII] = dados[9].split(':');
-      [, pressaoConcentradoII] = dados[11].split(':');
-      [, condutividadeEntradaII] = dados[2].split(':');
-      [, condutividadePermeadoII] = dados[3].split(':');
-      [, temperaturaEntradaII] = dados[5].split(':');
-      [, vazaoEntradaII] = dados[8].split(':');
-
-      let vazaoPermeadoI = parseFloat(vazaoPermeadoII);
-      let vazaoConcentradoI = parseFloat(vazaoConcentradoII)
-      let pressaoEntradaI = parseFloat(pressaoEntradaII)
-      let pressaoConcentradoI = parseFloat(pressaoConcentradoII)
-      let condutividadeEntradaI = parseFloat(condutividadeEntradaII)
-      let condutividadePermeadoI = parseFloat(condutividadePermeadoII)
-      let temperaturaEntradaI = parseFloat(temperaturaEntradaII)
-      let vazaoEntradaI = parseFloat(vazaoEntradaII);
-
-      // tempo zero
-      const vazaoPermeadoZero = 60.94;
-      const vazaoConcentradoZero = 20.74;
-      const pressaoEntrada = 8.76;
-      const pressaoConcentradoZero = 7.68;
-      const pressaoPermeadoZero = 6.14;
-      const condutividadePermeadoZero = 2;
-      const temperaturaEntradaZero = 25;
-      const pressureNetDrivingZero = 2.02514;
-      const correcaoTemperaturaZero = 1;
-      const concentracaoMediaCalculadaEntradaZero = 69.087149;
-      const TDSCalculatedFeedZero = 37.603419;
-
-      //relativo tempo zero
-      const VazaoNormalizadaRelativoZero = 10;
+    axios.get("/person").then(res => {
+       
+      const value = res.data;
+      let novo_array = [];
      
-      /**
-       * Calulate
-       */
-        
-  function funcTDSCalculatedFeed(condutividadeEntradaI) {
-    if (condutividadeEntradaI == 0) { //TODO; Confirmar variavel ()
-        let TDSCalculatedFeed;
-        return TDSCalculatedFeed = 0;
-    }
-    if (condutividadeEntradaI > 0 && condutividadeEntradaI <= 7630) {
-        let TDSCalculatedFeed = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(condutividadeEntradaI), 2) / 188.88442227);
-        return TDSCalculatedFeed;
-    }
-    if (condutividadeEntradaI > 7630) {
-        let TDSCalculatedFeed = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(condutividadeEntradaI), 2) / 112.483950289);
-        return TDSCalculatedFeed;
+      // pega o valor especifico dentro da aarray de obejtos e gera um anova array de objetos
+     value.map(function(i){
+          novo_array.push({
+              "Date": i.Date,
+              "FeedPressure": i.FeedPressure,
+              "ConcentratedPressure": i.ConcentratedPressure,
+              "FeedConductivity": i.FeedConductivity,
+              "PermConductivity": i.PermConductivity,
+              "PermFlow": i.PermFlow,
+              "ConcentratedFlow": i.ConcentratedFlow,
+              "FeedFlow": i.FeedFlow,
+              "FeeTemperature": i.FeeTemperature,
+          });
+      })
+  
+      //pega apenas o valor da array de objeto transformando em uma array
+      let FeedPressureArray1 = novo_array.map(a => a.FeedPressure);
+      let ConcentratedPressureArray1 = novo_array.map(a => a.ConcentratedPressure);
+      let FeedConductivityArray1 = novo_array.map(a => a.FeedConductivity);
+      let PermConductivityArray1 = novo_array.map(a => a.PermConductivity);
+      let PermFlowArray1 = novo_array.map(a => a.PermFlow);
+      let ConcentratedFlowArray1 = novo_array.map(a => a.ConcentratedFlow);
+      let FeedFlowArray1 = novo_array.map(a => a.FeedFlow);
+      let FeeTemperatureArray1 = novo_array.map(a => a.FeeTemperature);
+      let DateArray1 = novo_array.map(a => a.Date);
+  
+      //converte a array de string em nnumeros
+      let FeedPressureArray2 = FeedPressureArray1.map(Number);
+      let ConcentratedPressureArray2 = ConcentratedPressureArray1.map(Number);
+      let FeedConductivityArray2 = FeedConductivityArray1.map(Number);
+      let PermConductivityArray2 = PermConductivityArray1.map(Number);
+      let PermFlowArray2 = PermFlowArray1.map(Number);
+      let ConcentratedFlowArray2 = ConcentratedFlowArray1.map(Number);
+      let FeedFlowArray2 = FeedFlowArray1.map(Number);
+      let FeeTemperatureArray2 = FeeTemperatureArray1.map(Number);
+      let DateArray2 = DateArray1;
 
-    }
-  }
-  let TDSCalculatedFeed = funcTDSCalculatedFeed(condutividadeEntradaI);
-  // console.log(`Condutividade de Entrada: ${TDSCalculatedFeed}`);
+      let FeedPressureArray3 = FeedPressureArray2.reverse();
+      let ConcentratedPressureArray3 = ConcentratedPressureArray2.reverse();
+      let FeedConductivityArray3 = FeedConductivityArray2.reverse();
+      let PermConductivityArray3 = PermConductivityArray2.reverse();
+      let PermFlowArray3 = PermFlowArray2.reverse();
+      let ConcentratedFlowArray3 = ConcentratedFlowArray2.reverse();
+      let FeedFlowArray3 = FeedFlowArray2.reverse();
+      let FeeTemperatureArray3 = FeeTemperatureArray2.reverse();
+      let DateArray3 = DateArray2.reverse();
 
-  function funcTDSFeed(condutividadeEntradaI) {
-    let TDSFeedI = condutividadeEntradaI * 0.7;
-    return TDSFeedI;
-  }
-  let TDSFeedI = funcTDSFeed(condutividadeEntradaI);
-  // console.log(`TDS feed: ${TDSFeedI}`);
+      //----------------------------------------DEFINIÇÃO DE VARIÁVEIS MANUAIS-------------------------------
 
-  function funcTDSCalculatedPermeado(condutividadePermeadoI) {
-    if (condutividadePermeadoI == 0) { //TODO; Confirmar variavel ()
-        return TDSCalculatedPermeado = 0;
-    }
-    if (condutividadePermeadoI > 0 && condutividadePermeadoI <= 7630) {
-        let TDSCalculatedPermeado = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(condutividadePermeadoI), 2) / 188.88442227);
-        return TDSCalculatedPermeado;
-    }
-    if (condutividadePermeadoI > 7630) {
-        let TDSCalculatedPermeado = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(condutividadePermeadoI), 2) / 112.483950289);
-        return TDSCalculatedPermeado;
-    }
-  }
+      let pressao_permeado = 0;
+      let pressao_net_driving_zero = 0;
+      let Temp_correcao_zero = 1.047;
+  
 
-  let TDSCalculatedPermeado = funcTDSCalculatedPermeado(condutividadePermeadoI);
-  //  console.log(`TDS Calculated Permeado: ${TDSCalculatedPermeado}`);
+      //----------------------------------------INÍCIO DOS CÁLCULOS-----------------------------------------------------
 
-  function funcTDSPermeado(condutividadePermeadoI) {
-    let TDSPermeado = condutividadePermeadoI * 0.7;
-    return TDSPermeado;
-  }
+      //cálculo da PRESSÃO DIFERENCIAL: pressão entrada - pressão concentrado estágio final (kgf/cm²)
+      let PressaoDif = [];
+      let i = 0;
+      for (i=0; i < FeedPressureArray3.length+1; i++)
+      {
+          if (FeedPressureArray3[i]>0){
+          PressaoDif[i] = FeedPressureArray3[i] - ConcentratedPressureArray3[i];
+          }
+          else PressaoDif[i] = 0; 
+      }
 
-  let TDSPermeado = funcTDSPermeado(condutividadePermeadoI);
-  // console.log(`TDS Permeado: ${TDSPermeado}`);
+      //cálculo do TDS ENTRADA CALCULADO (ppm)
+      let TDS_entrada_calculado = [];
+      for (i=0; i < FeedConductivityArray3.length+1; i++)
+      {
+          if (FeedConductivityArray3[i] == 0) 
+          { 
+              TDS_entrada_calculado[i] = 0;
+          }
+          if (FeedConductivityArray3[i] > 0 && FeedConductivityArray3[i] <= 7630) 
+          {
+              TDS_entrada_calculado[i] = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(FeedConductivityArray3[i]), 2) / 188.88442227);
+          }
+          if (FeedConductivityArray3[i] > 7630) {
+              TDS_entrada_calculado[i] = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(FeedConductivityArray3[i]), 2) / 112.483950289);
+          }
+      }
 
-  // function funcVazaoEntrada(vazaoPermeadoI, vazaoConcentradoI) {
-  //   let vazaoEntradaI = vazaoPermeadoI + vazaoConcentradoI;
-  //   return vazaoEntradaI;
-  // }
-
-  // let vazaoEntradaI = funcVazaoEntrada(vazaoPermeadoI, vazaoConcentradoI);
-  // console.log(typeof(vazaoEntradaI));
-  // console.log(`valor entrada função ${vazaoEntradaI}`)
-  function funcPressaoDiferencial(pressaoEntradaI, pressaoConcentradoI) {
-
-    if (pressaoEntradaI > 0) {
-        let pressaoDiferencialI = pressaoEntradaI - pressaoConcentradoI; //TODO; confiarmar variaveis (x)
-        return pressaoDiferencialI
-    }
-    if (pressaoEntradaI <= 0) {
-        let pressaoDiferencialI = 0;
-        return pressaoDiferencialI
-    }
-  }
-
-  let pressaoDiferencialI = funcPressaoDiferencial(pressaoEntradaI, pressaoConcentradoI);
-  // console.log(`Pressão Diferencial: ${pressaoDiferencialI}`);
-
-  function funcCorrecaoTemperatura(temperaturaEntradaI) {
-    if (temperaturaEntradaI <= 0) {
-        let correcaoTemperatura = 0;
-        return correcaoTemperatura;
-    } else {
-        let correcaoTemperatura = Math.exp(2640 * ((1 / 298.15) - 1 / (temperaturaEntradaI + 273.15)));
-        return correcaoTemperatura;
-    }
-  }
-
-  let correcaoTemperatura = funcCorrecaoTemperatura(temperaturaEntradaI);
-  // console.log(`Correção do fator de Temperatura: ${correcaoTemperatura}`);
-
-  function funcConcentracaoMediaCalculadaEntrada(TDSCalculatedFeed, vazaoPermeadoI, condutividadeEntradaI, vazaoEntradaI, TDSFeedI) {
-    let concentracaoMediaCalculadaEntrada;
-    if (vazaoPermeadoI > 0) {
-        if (condutividadeEntradaI > 0) {
-            return concentracaoMediaCalculadaEntrada = TDSCalculatedFeed * Math.log(1 / (1 - vazaoPermeadoI / vazaoEntradaI)) / (vazaoPermeadoI / vazaoEntradaI);
-            if (condutividadeEntradaI <= 0) {
-                return concentracaoMediaCalculadaEntrada = TDSFeedI * Math.log(1 / (1 - vazaoPermeadoI / vazaoEntradaI)) / (vazaoPermeadoI / vazaoEntradaI);
-            }
-        }
-        if (vazaoPermeadoI <= 0) {
-            return concentracaoMediaCalculadaEntrada = 0;
-        }
-    }
-  }
-  let concentracaoMediaCalculadaEntrada = funcConcentracaoMediaCalculadaEntrada(TDSCalculatedFeed, vazaoPermeadoI, condutividadeEntradaI, vazaoEntradaI, TDSFeedI);
-
-
-  function funcPressaoOsmoticaEntrada(pressaoEntradaI, temperaturaEntradaI, concentracaoMediaCalculadaEntrada) {
-    if (pressaoEntradaI > 0 && temperaturaEntradaI > 0) {
-        let pressaoOsmoticaEntradaI = 0.0385 * concentracaoMediaCalculadaEntrada * (temperaturaEntradaI + 273.15) / ((1000 - (concentracaoMediaCalculadaEntrada / 1000)) * 14.25);
-        return pressaoOsmoticaEntradaI;
-
-        //TODO; confirmar se tem o .015 (x)
-    }
-
-    if (pressaoEntradaI <= 0 || temperaturaEntradaI <= 0) {
-        let pressaoOsmoticaEntradaI = 0
-        return pressaoOsmoticaEntradaI
-    }
-  }
-
-  let pressaoOsmoticaEntradaI = funcPressaoOsmoticaEntrada(pressaoEntradaI, temperaturaEntradaI, concentracaoMediaCalculadaEntrada);
-  // console.log(`Pressão Osmotica de Entrada: ${pressaoOsmoticaEntradaI}`);
-
-  function funcPressaoOsmoticaPermeado(pressaoEntradaI, condutividadePermeadoI, TDSCalculatedPermeado, TDSPermeado) {
-
-    if (pressaoEntradaI <= 0) {
-        let pressaoOsmoticaPermeado;
-        return pressaoOsmoticaPermeado = 0;
-    }
-    if (pressaoEntradaI > 0 && condutividadePermeadoI > 0 && temperaturaEntradaI > 0) {
-        let pressaoOsmoticaPermeado = ((0.0385 * TDSCalculatedPermeado * (temperaturaEntradaI + 273.15)) / (1000 - (TDSCalculatedPermeado / 1000))) / 14.25;
-        return pressaoOsmoticaPermeado;
-
-    }
-    if (pressaoEntradaI > 0 && condutividadePermeadoI > 0 && temperaturaEntradaI <= 0) {
-        let pressaoOsmoticaPermeado;
-        return pressaoOsmoticaPermeado = 0;
-    }
-
-    if (pressaoEntradaI > 0 && condutividadePermeadoI <= 0) {
-        if (TDSPermeado <= 0 || temperaturaEntradaI <= 0) {
-            let pressaoOsmoticaPermeado;
-            return pressaoOsmoticaPermeado = 0;
-        } else {
-            let pressaoOsmoticaPermeado = ((0.0385 * TDSPermeado * (temperaturaEntradaI + 273.15)) / (1000 - (TDSPermeado / 1000))) / 14.25;
-            return pressaoOsmoticaPermeado;
-        }
-
-    }
-  }
-
-  let pressaoOsmoticaPermeado = funcPressaoOsmoticaPermeado(pressaoEntradaI, condutividadePermeadoI, TDSCalculatedPermeado, TDSPermeado);
-  // console.log(`Pressâo Osmotica do Permeado: ${pressaoOsmoticaPermeado}`);
-
-  function funcPressureNetDriving(pressaoEntradaI, pressaoDiferencialI, pressaoOsmoticaEntradaI, pressaoPermeadoI, pressaoOsmoticaPermeado) {
-    let pressureNetDrivingI
-
-    if (pressaoEntradaI > 0) {
-        return pressureNetDrivingI = pressaoEntradaI - (pressaoDiferencialI / 2) - pressaoOsmoticaEntradaI - pressaoPermeadoI + pressaoOsmoticaPermeado; //TODO; confirmar variavel (x)
-        
-    }
-    if (pressaoEntradaI <= 0) {
-        return pressureNetDrivingI = 0;
-    }
-  }
-  let pressureNetDrivingI = funcPressureNetDriving(pressaoEntradaI, pressaoDiferencialI, pressaoOsmoticaEntradaI, pressaoPermeadoI, pressaoOsmoticaPermeado);
-  // console.log(`Pressure Net Driving: ${pressureNetDrivingI}`);
-  // console.log(pressaoEntradaI);
-
-  function funcVazaoNormalizadaPermeado(vazaoPermeadoI, pressureNetDrivingZero, pressureNetDrivingI, correcaoTemperatura, correcaoTemperaturaZero) {
-    let vazaoNormalizadaPermeado
-    if (vazaoPermeadoI > 0) {
-        return vazaoNormalizadaPermeado = (pressureNetDrivingZero * correcaoTemperaturaZero) / (pressureNetDrivingI * correcaoTemperatura) * vazaoPermeadoI;
+      //cálculo do TDS ENTRADA (sem fórmula e multiplicadopor 0.7 apenas) (ppm)
+      let TDS_entrada = [];
+      for (i=0; i < FeedConductivityArray3.length+1; i++)
+      {
+          TDS_entrada[i] = FeedConductivityArray3[i]*0.7;
+      }
       
-    }
-    if (vazaoPermeadoI < 0) {
-        return vazaoNormalizadaPermeado = 0;
-    }
-  }
-
-  let vazaoNormalizadaPermeado = funcVazaoNormalizadaPermeado(vazaoPermeadoI, pressureNetDrivingZero, pressureNetDrivingI, correcaoTemperatura, correcaoTemperaturaZero);
-  // console.log(`Vazão Normalizada do Permeado:${vazaoNormalizadaPermeado}`);
-
-  function funcPassagemNormalizadaDeSalDoPermeado(vazaoPermeadoI,condutividadeEntradaI,TDSCalculatedPermeado, correcaoTemperaturaZero, concentracaoMediaCalculadaEntradaZero, vazaoPermeadoZero, TDSCalculatedFeedZero, concentracaoMediaCalculadaEntrada, TDSPermeado) {
-    let PassagemNormalizadaDeSalDoPermeado;
-    if (vazaoPermeadoI <= 0) {
-        return PassagemNormalizadaDeSalDoPermeado = 0;
-    }
-    if (vazaoPermeadoI > 0 && condutividadeEntradaI > 0) {
-        return PassagemNormalizadaDeSalDoPermeado = TDSCalculatedPermeado * vazaoPermeadoI * correcaoTemperaturaZero * concentracaoMediaCalculadaEntradaZero / (vazaoPermeadoZero * correcaoTemperatura * concentracaoMediaCalculadaEntrada * TDSCalculatedFeedZero) * 100;
-    }
-    if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI > 0) {
-        return PassagemNormalizadaDeSalDoPermeado = TDSPermeado * vazaoPermeadoI * correcaoTemperaturaZero * concentracaoMediaCalculadaEntradaZero / (vazaoPermeadoZero * correcaoTemperatura * concentracaoMediaCalculadaEntrada * TDSCalculatedFeedZero) * 100;
-
-    }
-    if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI <= 0) {
-        return PassagemNormalizadaDeSalDoPermeado = 0;
-
-    }
-  }
-
-  let PassagemNormalizadaDeSalDoPermeado = funcPassagemNormalizadaDeSalDoPermeado(vazaoPermeadoI,condutividadeEntradaI,TDSCalculatedPermeado, correcaoTemperaturaZero, concentracaoMediaCalculadaEntradaZero, vazaoPermeadoZero, TDSCalculatedFeedZero,concentracaoMediaCalculadaEntrada, TDSPermeado);
-  // console.log(`Passagem Normalizada de Sal: ${PassagemNormalizadaDeSalDoPermeado}`);
-
-
-  function funcRejeicaoNormalizadaDeSalDoPermeado(vazaoPermeadoI, condutividadeEntradaI, PassagemNormalizadaDeSalDoPermeado, TDSFeedI) {
-    let RejeicaoNormalizadaDeSalDoPermeado
-    if (vazaoPermeadoI <= 0) {
-        return RejeicaoNormalizadaDeSalDoPermeado = 0; 
-    }
-    if (vazaoPermeadoI > 0 && condutividadeEntradaI > 0) {
-        return RejeicaoNormalizadaDeSalDoPermeado = 100 - PassagemNormalizadaDeSalDoPermeado; 
-
-    }
-    if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI > 0) {
-        return RejeicaoNormalizadaDeSalDoPermeado = 100 - PassagemNormalizadaDeSalDoPermeado; 
-
-    }
-    if (vazaoPermeadoI > 0 && condutividadeEntradaI <= 0 && TDSFeedI <= 0) {
-        return RejeicaoNormalizadaDeSalDoPermeado = 0; 
-
-    }
-  }
-
-  let RejeicaoNormalizadaDeSalDoPermeado = funcRejeicaoNormalizadaDeSalDoPermeado(vazaoPermeadoI, condutividadeEntradaI, PassagemNormalizadaDeSalDoPermeado, TDSFeedI);
-      if(vazaoNormalizadaPermeado!==undefined){
-        // console.log(`${var1} ${var2} ${var3} ${var4} ${var5} ${var6} ${var7} ${var8} ${var9} ${var10} ${var11} ${formated_hour}`);
-        this.setState({
-          series: [vazaoNormalizadaPermeado.toFixed(1)],
-        });
-      } else {
-        this.setState({
-          series: ["Valor não calculado"],
-        });
+      //cálculo do TDS PERMEADO CALCULADO (ppm)
+      let TDS_permeado_calculado = [];
+      for (i=0; i < PermConductivityArray3.length+1; i++)
+      {
+          if (PermConductivityArray3[i] == 0) 
+          { 
+              TDS_permeado_calculado[i] = 0;
+          }
+          if (PermConductivityArray3[i] > 0 && PermConductivityArray3[i] <= 7630) 
+          {
+              TDS_permeado_calculado[i] = 7.7013840097 * Math.pow(10, -20) * Math.exp(Math.pow(-90.475562243 - Math.log(PermConductivityArray3[i]), 2) / 188.88442227);
+          }
+          if (PermConductivityArray3[i] > 7630) 
+          {
+              TDS_permeado_calculado[i] = 8.0090966 * Math.pow(10, -11) * Math.exp(Math.pow(-50.645805186 - Math.log(PermConductivityArray3[i]), 2) / 112.483950289);
+          }
       }
-      function funcVazaoNormalizadaRelativo(VazaoNormalizadaRelativoZero,vazaoNormalizadaPermeado) {
-        let VazaoNormalizadaRelativo;
-        return VazaoNormalizadaRelativo = (vazaoNormalizadaPermeado/VazaoNormalizadaRelativoZero)*100;
-      }
-      let VazaoNormalizadaRelativo = funcVazaoNormalizadaRelativo(VazaoNormalizadaRelativoZero,vazaoNormalizadaPermeado);
 
-    };
+      //cálculo do TDS PERMEADO (ppm)
+      let TDS_permeado = [];
+      for (i=0; i < PermConductivityArray3.length+1; i++)
+      {
+          TDS_permeado[i] = PermConductivityArray3[i]*0.7;
+      }
+
+      //cálculo TEMPERATURA CORREÇÃO
+      let Temp_correcao = [];
+      for (i=0; i < FeeTemperatureArray3.length+1; i++)
+      {
+          if (FeeTemperatureArray3[i] <= 0) 
+          { 
+              Temp_correcao[i] = 0;
+          }
+          if (FeeTemperatureArray3[i] > 0 ) 
+          {
+              Temp_correcao[i] = Math.exp(2640 * ((1 / 298.15) - 1 / (FeeTemperatureArray3[i] + 273.15)));
+          }
+      }
+
+      //cálculo CONCENTRAÇÃO MÉDIA CALCULADA ENTRADA (ppm)
+      let conc_media_calculada_entrada = [];
+      for (i=0; i < PermFlowArray3.length+1; i++)
+      {
+          if (PermFlowArray3[i] > 0) 
+          { 
+             if (FeedConductivityArray3[i] > 0)
+             {
+              conc_media_calculada_entrada[i] = TDS_entrada_calculado[i] * Math.log(1 / (1 - PermFlowArray3[i] / FeedFlowArray3[i])) / (PermFlowArray3[i] / FeedFlowArray3[i]); 
+             }
+             if (FeedConductivityArray3[i] <= 0)
+             {
+              conc_media_calculada_entrada[i] = TDS_entrada[i] * Math.log(1 / (1 - PermFlowArray3[i] / FeedFlowArray3[i])) / (PermFlowArray3[i] / FeedFlowArray3[i]);   
+             }
+          }
+          if (PermFlowArray3[i] <= 0)
+          {
+          conc_media_calculada_entrada[i] = 0;
+          }
+      }
+
+      //cálculo PRESSÃO OSMÓTICA ENTRADA (kgf/cm²)
+      let pressao_osmotica_entrada = [];
+      for (i=0; i < FeedPressureArray3.length+1; i++)
+      {
+          if (FeedPressureArray3[i] > 0 && FeeTemperatureArray3[i] > 0)
+          {
+          pressao_osmotica_entrada[i] = 0.0385 * conc_media_calculada_entrada[i] * (FeeTemperatureArray3[i] + 273.15) / ((1000 - (conc_media_calculada_entrada[i] / 1000)) * 14.25);
+          }
+          if (FeedPressureArray3[i] <= 0 || FeeTemperatureArray3[i] <= 0 )
+          {
+          pressao_osmotica_entrada[i] = 0;
+          }
+      }
+
+      //cálculo PRESSÃO OSMÓTICA PERMEADO (kgf/cm²)
+      let pressao_osmotica_permeado = [];
+      for (i=0; i < FeedPressureArray3.length+1; i++)
+      {
+          if (FeedPressureArray3[i] <= 0)
+          {
+              pressao_osmotica_permeado[i] = 0;
+          }
+          if (FeedPressureArray3[i] > 0 && PermConductivityArray3[i] > 0 && FeeTemperatureArray3[i] > 0)
+          {
+              pressao_osmotica_permeado[i] = ((0.0385 * TDS_permeado_calculado[i] * (FeeTemperatureArray3[i] + 273.15)) / (1000 - (TDS_permeado_calculado[i] / 1000))) / 14.25;
+          }
+          if (FeedPressureArray3[i] > 0 && PermConductivityArray3[i] > 0 && FeeTemperatureArray3[i] <= 0)
+          {
+              pressao_osmotica_permeado[i] = 0;
+          }
+          if (FeedPressureArray3[i] > 0 && PermConductivityArray3[i] <= 0)
+          {
+              if (TDS_permeado[i] <=0 || FeeTemperatureArray3[i] <= 0)
+              {
+                  pressao_osmotica_permeado[i] = 0;
+              }
+              if (TDS_permeado[i] > 0 && FeeTemperatureArray3[i] > 0)
+              {
+                  pressao_osmotica_permeado[i] = ((0.0385 * TDS_permeado[i] * (FeeTemperatureArray3[i] + 273.15)) / (1000 - (TDS_permeado[i] / 1000))) / 14.25;
+              }
+          }
+      }
+
+      // cálculo da PRESSÃO NET DRIVING
+      let pressao_net_driving = [];
+      for (i=0; i < FeedPressureArray3.length+1; i++)
+      {
+          if (FeedPressureArray3[i] > 0)
+          {
+              pressao_net_driving[i] = FeedPressureArray3[i] - (PressaoDif[i] / 2) - pressao_osmotica_entrada[i] - pressao_permeado + pressao_osmotica_permeado[i];
+          }
+          if (FeedPressureArray3[i] <= 0)
+          {
+              pressao_net_driving[i] = 0;
+          }
+      }
+
+      //cálculo VAZÃO NORMALIZADA DO PERMEADO (m³/h)
+      let vazao_normalizada_permeado = [];
+      for (i=0; i < PermFlowArray3.length+1; i++)
+      {
+          if (PermFlowArray3[i] > 0)
+          {
+              vazao_normalizada_permeado[i] = (pressao_net_driving_zero * Temp_correcao_zero) / (pressao_net_driving[i] * Temp_correcao[i]) * PermFlowArray3[i];
+          }
+          if (PermFlowArray3[i] <= 0)
+          {
+              vazao_normalizada_permeado[i] = 0;
+          }
+      }
+
+      //----------------------------------------FIM DOS CÁLCULOS-----------------------------------------------------
+      
+    //---------------------------PEGANDO ÚLTIMO VALOR DA STRING--------------------------------------
+    
+    //armazenando valor da última posição na var k
+    let k = vazao_normalizada_permeado.length;
+   
+    let vazao_normalizada_permeado_value = vazao_normalizada_permeado[k-1];
+
+    //.tofixed determina o quanto de algarismos terá meu número 
+    this.setState({
+      series: [vazao_normalizada_permeado_value.toFixed(3)],
+    });
+
+      })
   }
+
   componentWillUnmount() {
     this.ws.close();
   }
@@ -475,27 +359,6 @@ class RadialBar extends Component {
               <Chart id="graph" options={this.state.options} series={this.state.series} type="radialBar" height="280" />
             </Grid> 
           </Grid>
-          {/* <Button variant="outlined" onClick={()=>{
-            if(button===0){
-              this.setState({
-                series: [99],
-                options:{
-                  labels:['teste'],
-                },
-                nombre:'Testando Setstate'
-              
-              });
-              button=2;
-            }
-            else if(button===2){
-              this.setState({
-                series: [76],
-                options:{labels:['teste']},
-                nombre:'Thiago'
-              });
-              button=0;
-            }
-          }}>{this.state.nombre}</Button> */}
         </div>
       </Container>
     );

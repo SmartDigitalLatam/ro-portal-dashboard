@@ -4,9 +4,9 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 
 /* Importing charts ... */
-import VazaoNormalizadaPermeado from '../../../graficos/radial/vazNormPerm';
-import RejeicaoNormalizadaDeSal from '../../../graficos/radial/rejNorm';
-import PressaoDiferencial from '../../../graficos/radial/pressDif';
+import PressDif from '../../../graficos/radial/pressDif';
+import RejNorm from '../../../graficos/radial/rejNorm';
+import VazNormPerm from '../../../graficos/radial/vazNormPerm';
 
 import { ContainerCss } from './styles';
 
@@ -18,13 +18,13 @@ export default function SimpleContainer(url) {
         <Container style={{ backgroundColor: '#f3f3f3',width:'100%',borderRadius:'25px' }}>
           <Grid container spacing={3}>
             <Grid item xs={4}>
-              <VazaoNormalizadaPermeado url={url.url}/>
+              <PressDif url={url.url}/>
             </Grid>
             <Grid item xs={4}>
-              <RejeicaoNormalizadaDeSal url={url.url}/>
+              <RejNorm url={url.url}/>
             </Grid>
             <Grid item xs={4}>
-              <PressaoDiferencial url={url.url}/>
+              <VazNormPerm url={url.url}/>
             </Grid>
           </Grid>
           <Grid container spacing={3}>
