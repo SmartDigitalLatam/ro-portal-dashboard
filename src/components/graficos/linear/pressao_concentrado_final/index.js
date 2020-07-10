@@ -18,7 +18,7 @@ class pressao_concentrado_final extends Component{
     
     getChartData(){
 
-        axios.get("/person").then(res => {
+        axios.get("https://ro-back-graph.azurewebsites.net/person").then(res => {
        
             const value = res.data;
             let novo_array_pressao_concentrado_final = [];

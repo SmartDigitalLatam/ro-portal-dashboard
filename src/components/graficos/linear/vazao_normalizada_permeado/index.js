@@ -17,7 +17,7 @@ class vazao_normalizada_permeado extends Component{
 
     
     getChartData(){
-        axios.get("/person").then(res => {
+        axios.get("https://ro-back-graph.azurewebsites.net/person").then(res => {
        
             const value = res.data;
             let novo_array_date = [];

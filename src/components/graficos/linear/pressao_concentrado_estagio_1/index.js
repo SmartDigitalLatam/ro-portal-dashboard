@@ -17,7 +17,7 @@ class pressao_concentrado_estagio_1 extends Component{
 
     
     getChartData(){
-        axios.get("/person").then(res => {
+        axios.get("https://ro-back-graph.azurewebsites.net/person").then(res => {
     
             //pegando valor do api - uri - localhost
             const value = res.data;
