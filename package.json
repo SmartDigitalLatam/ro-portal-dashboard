@@ -2,7 +2,6 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://ro-back-graph.azurewebsites.net",
   "dependencies": {
     "@material-ui/core": "^4.10.1",
     "@material-ui/icons": "^4.9.1",
@@ -12,6 +11,7 @@
     "apexcharts": "^3.19.2",
     "axios": "^0.19.2",
     "chart.js": "^2.9.3",
+    "clean-css": "^4.2.3",
     "formik": "^2.1.4",
     "http-proxy-middleware": "^1.0.4",
     "material-table": "^1.59.0",
