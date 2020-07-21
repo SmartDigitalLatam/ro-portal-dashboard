@@ -23,8 +23,8 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 //Rotas .
 import Principal from '../../views/principal_menu';
 import Graficos from '../../views/graficos';
-import Config from '../../views/config';
-import Historico from '../../views/historico_alarmes';
+
+
 
 import {Switch,Route,Redirect} from 'react-router-dom'
 const drawerWidth = 220;
@@ -66,7 +66,7 @@ export default function ClippedDrawer(url) {
         <AppBar position="fixed" className={classes.appBar}>
           <Toolbar id='header_menu'>
             <Typography variant="h6" noWrap>
-              Buckman
+              Buckman - Portal Osmose Reversa
             </Typography>
           </Toolbar>
         </AppBar>
@@ -97,42 +97,16 @@ export default function ClippedDrawer(url) {
               </ListItemText>
             </ListItem>
 
-            <ListItem button component="a" href='/historico'>
-              <ListItemIcon>
-                  <ReportProblemIcon />
-              </ListItemIcon>
-              <ListItemText>
-                  Histórico de alarmes
-              </ListItemText>
-            </ListItem>
-            {/* <ListItem button component="a" href='/config'>
-              <ListItemIcon>
-                  <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText>
-                  Startup
-              </ListItemText>
-            </ListItem> */}
+            
           </List>
-          {/* <List>
-            <ListItem button component="a" href='/sair'>
-                <ListItemIcon>
-                    <ExitToAppIcon />
-                </ListItemIcon>
-                <ListItemText>
-                    Sair
-                </ListItemText>
-            </ListItem>
-          </List> */}
+         
         </Drawer>
         <main className={classes.content}>
           <div className={classes.toolbar} />
           <Switch>
             <Redirect exact from='/' to='/principal'/>
             <Route path='/principal' render={(props) => <Principal data={url.url}/>}/>
-            <Route path='/historico' component={Historico}/>
             <Route path='/graficos' render={(props) => <Graficos data={url.url}/>}/>
-            {/* <Route path='/config' component={Config}/> */}
           </Switch>
         </main>
       </div>

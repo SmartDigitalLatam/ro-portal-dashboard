@@ -13,10 +13,10 @@ export const Container = styled.div`
     #card_desc{
         font-size:15px;
         font-weight: bold;
-        color:black;
+        color:white;
     }
     #card_desc a{
-        color:#404040;
+        color:#ffffff;
         text-decoration:none;
     }
     #card_title {

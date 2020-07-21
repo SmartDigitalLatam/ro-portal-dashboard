@@ -16,7 +16,7 @@ export const Container = styled.div`
         color:black;
     }
     #card_desc a{
-        color:#404040;
+        color:#ffffff;
         text-decoration:none;
     }
     #card_title {

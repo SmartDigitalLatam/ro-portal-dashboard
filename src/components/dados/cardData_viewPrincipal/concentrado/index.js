@@ -2,30 +2,15 @@
 import React, { Component,useState } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
 
 import { Container } from './styles';
-/* variables to buildup the time that the chart'll update .*/
-var data = [];
-var data_list = [];
-
-/* Local variables that're used to build the data structure .*/
-let pressaoConcentrado
-let vazaoConcentrado;
-let hour;
-let minutes;
-let seconds;
-let formated_hour;
-let date;
-let dia,mes,ano,formated_date;
-let add=0;
 
 export default class concentrado extends Component {
     constructor(props) {
         super(props);
         this.state = {  
             //Numbers to start the application  
-            vazaoConcentrado:0,
-            pressaoConcentrado:0,
             style:{
                 custom_card:{
                     color:'white',
@@ -37,7 +22,7 @@ export default class concentrado extends Component {
                     boxShadow: '0 6px 20px 0 rgba(0, 0, 0, 0.19);'
                 },
                 custom_title:{
-                    fontSize: 14,
+                    fontSize: 20,
                     color:'white',
                     borderRadius:'25px',
                 },
@@ -49,65 +34,89 @@ export default class concentrado extends Component {
                     width:'18%',
                 },
                 custom_button:{
-                    fontSize:'14px',
+                    fontSize:'18px',
                     fontWeight:'bold'
                 }
             }
         }
     }
     componentDidMount() {
-        var me = this;
-        // Setting the URL to create a WebSocket connection with the back-end server
-        me.ws = new WebSocket(me.props.url);
+        axios.get("https://ro-back-graph.azurewebsites.net/person").then(res => {
     
-        me.ws.onmessage = e => {
-            /* Building the data structure that were text formated .*/
-            const value = JSON.parse(e.data);
-            var lista_teste=value.IotData.data;
-            var lista_converted='';
-          
-            /* Uncrypting the data that comes from raspberry/plc .*/
-            lista_teste.map(function(item,i){
-                if(item!==32 && item!==0){
-                    lista_converted=lista_converted+String.fromCharCode(item);
-                }
-            });
-            let dados = lista_converted.split(',');
+             //pegando valor do api - uri - localhost
+             const value = res.data;
+
+             //adentrando o campo [result]
+             //let novo_array = value["result"]; - usar essa contrução quando usar cosmoDB API SQL
+             let novo_array = value;
+
+
+             
+  //splitando os dados em: Data, Dados e ConcentratedPressure
+            //-----------------------------------------------__________--------------------------------------   
+
+            let i = 0;
+            let j = 0;
+
+ 
+              //array novo para selecionar concentrate pressre 
+              let ConcentratedPressure_array = [];
+ 
+             novo_array.map(function(i){
+                 ConcentratedPressure_array.push({
+                         "ConcentratedPressure": i.ConcentratedPressure,
+                     })
+                     return ConcentratedPressure_array;
+                 })
+
+           
+                let ConcentratedFlow_array = [];
+                novo_array.map(function(i){
+                    ConcentratedFlow_array.push({
+                        "ConcentratedFlow": i.ConcentratedFlow,
+                    });
+                })
+
+
+
+           //manipulando o array de dados
+ 
+             let ConcentratedPressure_array_1 = ConcentratedPressure_array.map(a => a.ConcentratedPressure);  
+             let ConcentratedFlow_array_1 = ConcentratedFlow_array.map(a => a.ConcentratedFlow); 
+             
+ 
+              //converte a array de string em nnumeros
+              let ConcentratedPressure_array_2 = ConcentratedPressure_array_1.map(Number);
+              let ConcentratedFlow_array_2 = ConcentratedFlow_array_1.map(Number);
+        
+            //Dados limpos e finalizados
+            //-----------------------------------------------__________--------------------------------------   
+
+            //---------------------------PEGANDO ÚLTIMO VALOR DA STRING--------------------------------------
     
-            /* Getting the date */
-            [, date] = dados[0].split(':');
-            [dia,mes,ano]=date.split('/');
-            /* Filtering variables */
-            [, vazaoConcentrado] = dados[7].split(':');
-            [, pressaoConcentrado] = dados[11].split(':');
-            /* Getting the exact hour */
-            [, hour, minutes, seconds] = dados[1].split(':');
-            formated_hour=`${date}-${hour}:${minutes}:${seconds}`;
-          
-            formated_date = new Date(ano,mes-1,dia,hour,minutes,seconds);
+    //armazenando valor da última posição na var k
+    let k = ConcentratedPressure_array_2.length;
     
-            /*
-                Creating a local variables that store the object that'll be sent to 
-                the Data of this chart .
-            */
-            let obj = {x:formated_hour,y:parseInt(vazaoConcentrado)};
-            add=add+100;
-            data_list.push(obj);
+    let ConcentratedPressure_value = ConcentratedPressure_array_2[0];
+    let ConcentratedFlow_value = ConcentratedFlow_array_2[0];
+
     
-            /* Updating data .*/
-            me.setState({
-                vazaoConcentrado:parseFloat(vazaoConcentrado).toFixed(1),
-                pressaoConcentrado:parseFloat(pressaoConcentrado).toFixed(1),
-            });
-        };
+
+    //.tofixed determina o quanto de algarismos decimais terá meu número 
+    this.setState({
+      series1: [ConcentratedPressure_value.toFixed(2)],
+      series2: [ConcentratedFlow_value.toFixed(2)],
+    });
+
+      })
     }
+    
     componentWillUnmount() {
-        var me = this;
-        me.ws.close();
-    }
+        this.setState.close();
+      }
+
     render() {
         var me = this;
-        // console.log(this.state);
         return (
             <div>
                 <Container>
@@ -115,29 +124,35 @@ export default class concentrado extends Component {
                         <div id="card_title">
                             <p>CONCENTRADO</p>
                         </div>
-                        <Grid container spacing={0.5} direction="row" justify="center" alignItems="center" style={me.state.style.custom_card}>
-                            <Grid style={me.state.style.custom_center_item} item xs={12} sm={5}>
+                        <Grid container spacing={2} direction="row" justify="center" alignItems="center" style={me.state.style.custom_card}>
+                            
+
+                            <Grid style={me.state.style.custom_center_item} item xs={12} sm={2}>
                                 <Typography id='card_content'component="h2">
-                                {me.state.vazaoConcentrado}
+                                {me.state.series1}
                                 </Typography>
                                 <Typography  >
-                                    m³/h
+                        
                                 </Typography>
                                 <Typography id='card_desc' variant="body2" component="p" color="textSecondary">
-                                    <a href=" "style={me.state.style.custom_button}>Vazão</a>
+                                    <a href=" "style={me.state.style.custom_button}>Pressão Concentrado, kgf/cm²</a>
                                 </Typography>
                             </Grid>
-                            <Grid style={me.state.style.custom_center_item} item xs={12} sm={5}>
+
+                            <Grid style={me.state.style.custom_center_item} item xs={12} sm={2}>
                                 <Typography id='card_content'component="h2">
-                                {me.state.pressaoConcentrado}
+                                {me.state.series2}
                                 </Typography>
                                 <Typography  >
-                                    kgf/cm²
+                        
                                 </Typography>
                                 <Typography id='card_desc' variant="body2" component="p" color="textSecondary">
-                                    <a href=" "style={me.state.style.custom_button}>Pressão</a>
+                                    <a href=" "style={me.state.style.custom_button}>Vazão do Concentrado, m³/h</a>
                                 </Typography>
                             </Grid>
+
+
+
                         </Grid>
                     </div>
                 </Container>
